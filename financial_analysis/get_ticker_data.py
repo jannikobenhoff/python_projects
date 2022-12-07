@@ -12,7 +12,7 @@ def get_ticker_value(ticker, range, interval):
     df = pd.read_json(url)
     close_list = df["chart"]["result"][0]["indicators"]["quote"][0]["close"]
 
-    date_list = datetime.fromtimestamp(df["chart"]["result"][0]["timestamp"][0])
+    date_list = [datetime.fromtimestamp(x) for x in df["chart"]["result"][0]["timestamp"]]
 
     return close_list, date_list
 
@@ -23,4 +23,15 @@ def get_ticker_infos(ticker):
     df = pd.read_json(url)
 
     return df["chart"]["result"][0]["meta"]
+
+
+def get_ticker_max(ticker, range, interval):
+    base_url = 'https://query1.finance.yahoo.com'
+    url = "{}/v8/finance/chart/{}?range={}&interval={}".format(base_url, ticker, range, interval)
+    df = pd.read_json(url)
+    close_list = df["chart"]["result"][0]["indicators"]["quote"][0]["close"]
+    max_index = close_list.index(max(close_list))
+    date_list = [datetime.fromtimestamp(x) for x in df["chart"]["result"][0]["timestamp"]]
+
+    return close_list[max_index], str(date_list[max_index])[0:10]
 
