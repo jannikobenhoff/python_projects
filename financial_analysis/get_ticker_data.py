@@ -23,8 +23,8 @@ def get_ticker_value(ticker, range, interval):
         date_list = [datetime.fromtimestamp(x) for x in df["chart"]["result"][0]["timestamp"]]
         return close_list, date_list
 
-    except urllib.error.HTTPError:
-        print("http error")
+    except (urllib.error.HTTPError):
+        print("error")
         return pd.DataFrame(columns=["open", "date"])
 
 
@@ -45,7 +45,7 @@ def get_ticker_infos(ticker):
 
     df = pd.DataFrame(columns=['Metric Name', 'Metric'])
     if len(table_data) == 0 or "Market Cap" not in str(table_data[0].text):
-        return df
+        return df, URL
 
     for data in range(0, len(table_data) - 1, 2):
         df = pd.concat([df, pd.DataFrame({'Metric Name': table_data[data].text, 'Metric': table_data[data + 1].text}, index=[0])], ignore_index=True)
@@ -54,26 +54,30 @@ def get_ticker_infos(ticker):
 
 
 def rule_of_fourty(df: pd.DataFrame):
+    print(len(df))
     if df.empty:
-        return 0, False
+        return 0, False, 0, 0
 
     profit_margin = df.loc[df['Metric Name'].str.contains("Profit Margin", case=False)]["Metric"].values[0]
     operating_margin = df.loc[df['Metric Name'].str.contains("Operating Margin", case=False)]["Metric"].values[0]
     value_revenue = df.loc[df['Metric Name'].str.contains("Enterprise Value/Revenue", case=False)]["Metric"].values[0]
     growth = df.loc[df['Metric Name'].str.contains("Quarterly Revenue Growth", case=False)]["Metric"].values[0]
 
+    try:
 
-    if profit_margin == "N/A" or operating_margin == "N/A" or value_revenue == "N/A" or growth == "N/A":
-        return 0, False
+        if profit_margin == "N/A" or operating_margin == "N/A" or value_revenue == "N/A" or growth == "N/A":
+            return 0, False, 0, 0
 
-    rule = float(growth.replace("%", "").replace(",", "")) + float(operating_margin.replace("%", "").replace(",", ""))
+        rule = float(growth.replace("%", "").replace(",", "")) + float(operating_margin.replace("%", "").replace(",", ""))
 
-    if rule > 40 and 0 < float(value_revenue) <10 and float(profit_margin.strip("%"))/100 > 0 and float(operating_margin.strip("%"))/100 > 0:
-        good = True
-    else:
-        good = False
+        if rule > 40 and 0 < float(value_revenue) < 10 and float(profit_margin.replace("%", "").replace(",", ""))/100 > 0 and float(operating_margin.replace("%", "").replace(",", ""))/100 > 0:
+            good = True
+        else:
+            good = False
 
-    return rule, good, float(value_revenue), float(profit_margin.strip("%"))/100
+        return rule, good, float(value_revenue), float(profit_margin.replace("%", "").replace(",", ""))
+    except ValueError:
+        return 0, False, 0, 0
 
 
 def get_ticker_max(ticker, range, interval):
@@ -89,3 +93,7 @@ def get_ticker_max(ticker, range, interval):
 
     return close_list[max_index], str(date_list[max_index])[0:10]
 
+print("out: ", get_ticker_value("APPF", "3y", "1d"))
+print(get_ticker_infos("APPF"))
+df = get_ticker_infos("APPF")[0]
+print(rule_of_fourty(df))

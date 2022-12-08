@@ -19,7 +19,7 @@ if __name__ == "__main__":
         last_file = output_list[-1].split(".")[0]
         last_file_index = tickers.index(last_file)
 
-    for ticker in tickers[last_file_index:-1]:
+    for ticker in tickers[last_file_index+1:-1]:
         print(ticker)
         data = pd.DataFrame(columns=["open", "date"])
         data["open"], data["date"] = get_ticker_value(ticker, range, "1d")
@@ -33,6 +33,8 @@ if __name__ == "__main__":
             continue
 
         r40, good, value_rev, prof_marg = rule_of_fourty(info)
+
+        print(r40, good)
 
         if good == False:
             continue
@@ -73,4 +75,5 @@ if __name__ == "__main__":
         #plt.grid(True)
         plt.subplots_adjust(left=0.35)
         #plt.show()
+        print("---PLOT---")
         plt.savefig("__output/{}.pdf".format(ticker))
