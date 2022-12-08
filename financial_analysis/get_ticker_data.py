@@ -21,6 +21,10 @@ def get_ticker_value(ticker, range, interval):
         close_list = df["chart"]["result"][0]["indicators"]["quote"][0]["close"]
 
         date_list = [datetime.fromtimestamp(x) for x in df["chart"]["result"][0]["timestamp"]]
+
+        if len(close_list) < 5:
+            return pd.DataFrame(columns=["open", "date"])
+
         return close_list, date_list
 
     except (urllib.error.HTTPError):
@@ -54,8 +58,8 @@ def get_ticker_infos(ticker):
 
 
 def rule_of_fourty(df: pd.DataFrame):
-    print(len(df))
     if df.empty:
+        print("df empty")
         return 0, False, 0, 0
 
     profit_margin = df.loc[df['Metric Name'].str.contains("Profit Margin", case=False)]["Metric"].values[0]
@@ -66,6 +70,7 @@ def rule_of_fourty(df: pd.DataFrame):
     try:
 
         if profit_margin == "N/A" or operating_margin == "N/A" or value_revenue == "N/A" or growth == "N/A":
+            print("N/A value detected")
             return 0, False, 0, 0
 
         rule = float(growth.replace("%", "").replace(",", "")) + float(operating_margin.replace("%", "").replace(",", ""))
@@ -93,7 +98,7 @@ def get_ticker_max(ticker, range, interval):
 
     return close_list[max_index], str(date_list[max_index])[0:10]
 
-print("out: ", get_ticker_value("APPF", "3y", "1d"))
-print(get_ticker_infos("APPF"))
-df = get_ticker_infos("APPF")[0]
-print(rule_of_fourty(df))
+# print("out: ", get_ticker_value("BREZR", "3y", "1d"))
+# print(get_ticker_infos("BREZR"))
+# df = get_ticker_infos("BREZR")[0]
+# print(rule_of_fourty(df))
