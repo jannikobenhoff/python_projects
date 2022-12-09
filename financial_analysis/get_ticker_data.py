@@ -58,10 +58,12 @@ def get_ticker_infos(ticker):
 
 
 def rule_of_fourty(df: pd.DataFrame):
+    #print(df)
     if df.empty:
         print("df empty")
         return 0, False, 0, 0
-
+    #current_share_price =
+    #shares_outstanding = df.loc[df['Metric Name'].str.contains("Shares Outstanding", case=False)]["Metric"].values[0]
     profit_margin = df.loc[df['Metric Name'].str.contains("Profit Margin", case=False)]["Metric"].values[0]
     operating_margin = df.loc[df['Metric Name'].str.contains("Operating Margin", case=False)]["Metric"].values[0]
     value_revenue = df.loc[df['Metric Name'].str.contains("Enterprise Value/Revenue", case=False)]["Metric"].values[0]
@@ -100,5 +102,5 @@ def get_ticker_max(ticker, range, interval):
 
 # print("out: ", get_ticker_value("BREZR", "3y", "1d"))
 # print(get_ticker_infos("BREZR"))
-# df = get_ticker_infos("BREZR")[0]
-# print(rule_of_fourty(df))
+df = get_ticker_infos("AAPL")[0]
+print(rule_of_fourty(df))

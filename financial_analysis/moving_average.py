@@ -91,3 +91,13 @@ def plot_sma_and_ema(ticker, days):
     plt.show()
 
 
+def calc_volatility(vals):
+    mean = sum(vals)/len(vals)
+    divs = [x - mean for x in vals]
+    divs = [x**2 for x in divs]
+    sum_divs = sum(divs)
+    variance = sum_divs/len(vals)
+    standard_deviation = np.sqrt(variance)
+    return variance, standard_deviation
+
+
