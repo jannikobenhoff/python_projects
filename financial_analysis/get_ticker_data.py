@@ -102,5 +102,5 @@ def get_ticker_max(ticker, range, interval):
 
 # print("out: ", get_ticker_value("BREZR", "3y", "1d"))
 # print(get_ticker_infos("BREZR"))
-df = get_ticker_infos("AAPL")[0]
-print(rule_of_fourty(df))
+#df = get_ticker_infos("AAPL")[0]
+#print(rule_of_fourty(df))
