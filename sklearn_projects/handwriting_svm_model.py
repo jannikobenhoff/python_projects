@@ -85,7 +85,6 @@ if __name__ == "__main__":
             index = index + 1
 
     plt.tight_layout()
-    # plt.show()
     plt.savefig("__output/mnist_plot.pdf")
 
 
