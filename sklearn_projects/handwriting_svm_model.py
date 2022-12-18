@@ -68,7 +68,6 @@ if __name__ == "__main__":
     param_gamma = 0.05*255
     svm = SVC(C=param_C) #, gamma=param_gamma)
 
-    #svm = SVC(kernel="rbf", C=5, gamma=0.05) #LinearSVC(dual=False)
     svm.fit(images_train, labels_train)
     pred = svm.predict(images_test)
     print(accuracy_score(labels_test, pred))
