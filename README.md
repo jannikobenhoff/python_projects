@@ -3,7 +3,7 @@ Some fun python projects I've coded over the years.
 ## Machine Learning projects
 ### asdf
 
-## Financial Analysis (SMA, EMA, RuleOf40)\
+## Financial Analysis (SMA, EMA, RuleOf40)
 · SMA\
 · EMA\
 · Rule of 40
