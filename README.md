@@ -1,8 +1,9 @@
 # Python Projects
 Some fun python projects I've coded over the years.  
 ## Machine Learning projects
-### asdf
-
+· Handwriting detection\
+· Regressions\
+· Model parametrization
 ## Financial Analysis
 · SMA\
 · EMA\
