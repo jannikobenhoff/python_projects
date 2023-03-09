@@ -1,4 +1,4 @@
-key = "RGAPI-8c313a9b-b688-4790-9d32-0203436b3ce4"
+key = "RGAPI-87bd3fe7-3859-4832-86a0-9cd499ccaa0c"
 
 profilIcon = "https://ddragon.leagueoflegends.com/cdn/11.14.1/img/profileicon/3582.png"
 
@@ -6,7 +6,7 @@ from riotwatcher import LolWatcher, ApiError
 import pandas as pd
 
 # golbal variables
-api_key = 'RGAPI-c5272982-5370-4575-940e-346fb00e5dfc'
+api_key = 'RGAPI-87bd3fe7-3859-4832-86a0-9cd499ccaa0c'
 watcher = LolWatcher(api_key)
 my_region = 'euw1'
 
@@ -15,10 +15,118 @@ print(me)
 
 my_ranked_stats = watcher.league.by_summoner(my_region, me['id'])
 print(my_ranked_stats)
-
-versions = watcher.data_dragon.versions_for_region(my_region)
-champions_version = versions['n']['champion']
-
-# Lets get some champions
-current_champ_list = watcher.data_dragon.champions(champions_version)
+#
+# versions = watcher.data_dragon.versions_for_region(my_region)
+# champions_version = versions['n']['champion']
+#
+# # Lets get some champions
+# current_champ_list = watcher.data_dragon.champions(champions_version)
 #print(current_champ_list)
+
+import configparser
+import requests
+
+# Development key changes every 24 hours, access it by logging in to the Riot Developer Portal with your League of Legends account
+config = configparser.ConfigParser()
+config.read('config.cfg')
+api_key = key
+
+# request headers
+headers = {
+    "Origin": "https://developer.riotgames.com",
+    "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
+    "X-Riot-Token": api_key,
+    "Accept-Language": "en-us",
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/12.1.2 Safari/605.1.15"
+}
+
+
+def winrate(wins, losses):
+    """
+    Given number of wins and losses, calculate the winrate as a percentage
+    """
+    return wins / (wins + losses) * 100
+
+
+def getSummonerId(summonerName: str, region):
+    """
+    Each player has an encrypted account ID that is used to get match history and other data
+    """
+    summonerNameUrl = f'https://{region}.api.riotgames.com/lol/summoner/v4/summoners/by-name/{summonerName}'
+    response = requests.get(summonerNameUrl, headers=headers)
+    if not response.ok:
+        print(response.json()['status']['message'])
+        exit()
+    return response.json()['puuid']
+
+
+def getMatchList(summonerId: str, queue: int, routing):
+    params = f'?queue={queue}&count=5'
+    summonerMatchlistUrl = f'https://{routing}.api.riotgames.com/lol/match/v5/matches/by-puuid/{summonerId}/ids{params}'
+    res = requests.get(summonerMatchlistUrl, headers=headers).json()
+    return res
+
+
+def displayWinrates(summonerId, matchList: list, routing):
+    """
+    Iterates through matchlist, prints out results and returns list of
+    champions played, and a list of their corresponding winrates
+    """
+    wins, losses = (0, 0)
+    champion_winrates = {}
+
+    # Parse through matchlist
+    for matchId in matchList:
+
+        # Access match data
+        matchUrl = f'https://{routing}.api.riotgames.com/lol/match/v5/matches/{matchId}'
+        matchInfo = requests.get(matchUrl, headers=headers).json()["info"]
+
+        for player in matchInfo["participants"]:
+            if player["puuid"] == summonerId:
+                win = player["win"]
+                champion = player["championName"]
+                break
+
+        # Increments win/loss counters for overall and per champion
+        if win:
+            wins += 1
+            if champion in champion_winrates:
+                champion_winrates[champion][0] += 1
+            else:
+                champion_winrates[champion] = [1, 0, 0]
+        else:
+            losses += 1
+            if champion in champion_winrates:
+                champion_winrates[champion][1] += 1
+            else:
+                champion_winrates[champion] = [0, 1, 0]
+        champion_winrates[champion][2] += 1
+
+    # Sort champions in descending order of games
+    champion_winrates = dict(
+        sorted(champion_winrates.items(), reverse=True, key=lambda x: x[1][2]))
+    champion_list = []
+    champion_winrates_list = []
+
+    # Overall wins and losses
+    print(wins, 'wins', losses, 'losses')
+
+    # Overall winrate to two decimal places
+    print('%.2f' % (winrate(wins, losses)) + "%")
+    for champion in champion_winrates:
+        # Prints champion winrates and checks for plural games
+        percentage = '%.2f' % (winrate(champion_winrates[champion]))
+        games = champion_winrates[champion][2]
+
+        champion_list.append(champion)
+        champion_winrates_list.append(float(percentage))
+
+        if games == 1:
+            print(champion, percentage + '%', games, 'game')
+        else:
+            print(champion, percentage + '%', games, 'games')
+
+    return champion_list, champion_winrates_list
+
+getMatchList("Autsch")
