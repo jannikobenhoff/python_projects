@@ -11,7 +11,9 @@ import pickle
 from solarplus.lastprofil import scaleLastprofil
 from solarplus.model import Model
 from solarplus.pv_ertrag import pv_performance
-
+import tensorflow as tf
+from tensorflow import keras
+from keras import layers
 
 def getWeatherData():
     """
@@ -40,7 +42,8 @@ def getApiResponse(strom, ww, heiz, pv, dach):
                        "Wochentag", "TagArt", "Verbrauch", "WW", "Heiz", "Ertrag", ]
                        #"Facts"]
                       )
-    # np.seterr(divide='ignore')
+
+    np.seterr(divide='ignore')
     '''Load Model'''
     model = Model(inputlayers=5, outputlayers=3)
     with open("model.pickle", "rb") as fp:
@@ -61,24 +64,39 @@ def getApiResponse(strom, ww, heiz, pv, dach):
 
     inputs = ['Temp', 'Time', 'TagArt', 'Irradiance', 'Monat']
 
-    x = torch.tensor(df[inputs].values, dtype=torch.float)
-    scaler = MinMaxScaler()
+    '''Load Tensorflow Model'''
+    normalizer = tf.keras.layers.Normalization(axis=-1)
+    normalizer.adapt(np.array(df[inputs]))
+    model = tf.keras.Sequential([
+        normalizer,
+        layers.Dense(64, activation='relu'),
+        layers.Dense(64, activation='relu'),
+        layers.Dense(3, activation='sigmoid'),
+    ])
+    latest = tf.train.latest_checkpoint("training")
 
-    scaler.fit(x)
-    x = scaler.transform(x)
-    x = torch.Tensor(x)
-    print(x[0:3])
-    pred = [[], [], []]
-    # model.eval()
-    for i in range(len(x)):
-        ypred = model(x[i])
-        pred[0].append(ypred.detach().numpy()[0])
-        pred[1].append(ypred.detach().numpy()[1])
-        pred[2].append(ypred.detach().numpy()[2])
+    model.load_weights(latest)
 
-    df["Verbrauch"] = pred[0]
-    df["WW"] = pred[1]
-    df["Heiz"] = pred[2]
+    df[["Verbrauch", "WW", "Heiz"]] = model.predict(df[inputs])
+    #
+    # x = torch.tensor(df[inputs].values, dtype=torch.float)
+    # scaler = MinMaxScaler()
+    #
+    # scaler.fit(x)
+    # x = scaler.transform(x)
+    # x = torch.Tensor(x)
+    # print(x[0:3])
+    # pred = [[], [], []]
+    # # model.eval()
+    # for i in range(len(x)):
+    #     ypred = model(x[i])
+    #     pred[0].append(ypred.detach().numpy()[0])
+    #     pred[1].append(ypred.detach().numpy()[1])
+    #     pred[2].append(ypred.detach().numpy()[2])
+    #
+    # df["Verbrauch"] = pred[0]
+    # df["WW"] = pred[1]
+    # df["Heiz"] = pred[2]
     df["Ertrag"] = pv_performance(pv, tmy["G(h)"], tmy["T2m"], tmy["WD10m"])
     df["Ertrag"] = df["Ertrag"].fillna(0) * int(dach/2)
 
@@ -96,4 +114,10 @@ def getApiResponse(strom, ww, heiz, pv, dach):
 
 
 if __name__ == "__main__":
-    getApiResponse(4000, 2500, 2000, "Si", 100)
+    df = getApiResponse(4000, 2500, 2000, "Si", 100)
+    fig, axes = plt.subplots(1, 3)
+    axes[0].plot(df["Verbrauch"])
+    axes[1].plot(df["WW"])
+    axes[2].plot(df["Heiz"])
+
+    plt.show()

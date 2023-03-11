@@ -3,6 +3,9 @@ import torch.nn.functional as F
 import torch.nn as nn
 from torch.autograd import Variable
 import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+from keras import layers
 
 
 class Model(nn.Module):
@@ -26,6 +29,23 @@ class Model(nn.Module):
         x = self.layer5(x)
         return x
 
+
+def DNN(train_features):
+    normalizer = tf.keras.layers.Normalization(axis=-1)
+    normalizer.adapt(np.array(train_features))
+
+    model = tf.keras.Sequential([
+      normalizer,
+      layers.Dense(64, activation='relu'),
+      layers.Dense(64, activation='relu'),
+      layers.Dense(3, activation='sigmoid'),
+    ])
+
+    model.compile(optimizer='adam',
+                loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+                metrics=[tf.keras.metrics.SparseCategoricalAccuracy()])
+
+    return model
 
 class RBF(nn.Module):
     """

@@ -45,5 +45,5 @@ def pv_performance(pv, Gin, Temp, W_mod):
           koeff["k4"] * T * np.log(G) +
           koeff["k5"] * T * pow(np.log(G), 2) +
           koeff["k6"] * pow(T, 2))
-    return P * pvWg
+    return P #* pvWg
 

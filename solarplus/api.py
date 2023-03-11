@@ -15,13 +15,28 @@ def home_page():
 
 @app.route('/verbrauch/', methods=['GET'])
 def user_page():
+    """
+    Dachart:
+        0 - Satteldach
+        1 - Pultdach
+        2 - Flachdach
+        3 - Walmdach
+    PV:
+        0 - Crystalline Silicon
+        1 - CIS
+        2 - Cadmiumtellurid
+    """
+    dach = int(request.args.get("dach"))
+    dachart = int(request.args.get("dachart"))
+    dachneigung = int(request.args.get("dachneigung"))
+    azimut = int(request.args.get("azimut"))
     strom = int(request.args.get("strom"))
     ww = int(request.args.get("ww"))
     heiz = int(request.args.get("heiz"))
     pv = str(request.args.get("pv"))
-    dach = int(request.args.get("dach"))
 
-    print(strom, ww, heiz, pv, dach)
+    print("Strom: {}, WW: {}, Heiz: {}, PV: {}, Dachfläche: {}, Dachart: {}, Dachneigung: {}, Azimut: {}"
+          .format(strom, ww, heiz, pv, dach, dachart, dachneigung, azimut))
 
     j = getApiResponse(strom, ww, heiz, pv, dach)
 

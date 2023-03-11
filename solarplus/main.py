@@ -10,7 +10,7 @@ from torch.optim.lr_scheduler import ExponentialLR
 
 from helper import getWeatherData
 from solarplus.lastprofil import scaleLastprofil
-from solarplus.model import Model, RBF, gaussian
+from solarplus.model import Model, RBF, Model2
 
 if __name__ == "__main__":
     '''Inputs: Temperatur, Strahlung, Uhrzeit, Wochentag, So/Sa/Woche'''
