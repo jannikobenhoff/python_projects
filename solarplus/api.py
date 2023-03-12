@@ -22,9 +22,9 @@ def user_page():
         2 - Flachdach
         3 - Walmdach
     PV:
-        0 - Crystalline Silicon
-        1 - CIS
-        2 - Cadmiumtellurid
+        "crystSi" - Crystalline Silicon
+        "CIS" - CIS
+        "CdTe" - Cadmiumtellurid
     """
     dach = int(request.args.get("dach"))
     dachart = int(request.args.get("dachart"))
@@ -38,7 +38,7 @@ def user_page():
     print("Strom: {}, WW: {}, Heiz: {}, PV: {}, Dachfläche: {}, Dachart: {}, Dachneigung: {}, Azimut: {}"
           .format(strom, ww, heiz, pv, dach, dachart, dachneigung, azimut))
 
-    j = getApiResponse(strom, ww, heiz, pv, dach)
+    j = getApiResponse(strom=strom, ww=ww, heiz=heiz, pv=pv, azimut=azimut, neigung=dachneigung, dachart=dachart, dach=dach)
 
     response = jsonify(j)
     response.headers.add('Access-Control-Allow-Origin', '*')

@@ -2,11 +2,10 @@ key = "RGAPI-87bd3fe7-3859-4832-86a0-9cd499ccaa0c"
 
 profilIcon = "https://ddragon.leagueoflegends.com/cdn/11.14.1/img/profileicon/3582.png"
 
-from riotwatcher import LolWatcher, ApiError
 import pandas as pd
 
 # golbal variables
-api_key = 'RGAPI-87bd3fe7-3859-4832-86a0-9cd499ccaa0c'
+api_key = ''
 watcher = LolWatcher(api_key)
 my_region = 'euw1'
 

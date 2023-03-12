@@ -16,40 +16,37 @@ import seaborn as sns
 from solarplus.model import Model
 
 if __name__ == "__main__":
-    '''Inputs: Temperatur, Strahlung, Uhrzeit, Wochentag, So/Sa/Woche'''
+    '''Inputs: Temperatur, Strahlung, Uhrzeit, Tagart'''
     '''Outputs: Stromverbrauch, (Warmwasser, Heizverbrauch)'''
     new_input = False
     if new_input:
         ls = pd.DataFrame(scaleLastprofil(4500, 2500, 2000),
-                          columns=["index", "time", "x", "verbrauch", "art", "tag", "ww", "heiz"])
+                          columns=["index", "time", "x", "strom", "art", "wochentag", "ww", "heiz"])
         tmy = pd.DataFrame(getWeatherData())
         df = pd.DataFrame(
-            columns=["Temp", "Irradiance", "Time", "Monat", "Wochentag", "TagArt", "Verbrauch", "WW", "Heiz"])
+            columns=["temp", "strahlung", "hour", "month", "art", "strom", "ww", "heiz"])
 
-        print(ls.head())
-        print(tmy.head())
-
-        df["Monat"] = tmy["time(UTC)"]
-        df["Irradiance"] = tmy["G(h)"]
-        df["Monat"] = df["Monat"].str[4:6]
-        df["Monat"] = pd.to_numeric(df['Monat'], errors='ignore')
-        df["Time"] = tmy["time(UTC)"]
-        df["Time"] = df["Time"].str[9:11]
-        df["Time"] = pd.to_numeric(df['Time'], errors='ignore')
-        df["Wochentag"] = ls["tag"].values[0::4]
-        df["TagArt"] = ls["art"].values[0::4]
-        df["Verbrauch"] = ls["verbrauch"].values[0::4] * 4
-        df["Heiz"] = ls["heiz"].values[0::4]
-        df["WW"] = ls["ww"].values[0::4]
-        df["Temp"] = tmy["T2m"]
+        df["month"] = tmy["time(UTC)"]
+        df["strahlung"] = tmy["G(h)"]
+        df["month"] = df["month"].str[4:6]
+        df["month"] = pd.to_numeric(df['month'], errors='ignore')
+        df["hour"] = tmy["time(UTC)"]
+        df["hour"] = df["hour"].str[9:11]
+        df["hour"] = pd.to_numeric(df['hour'], errors='ignore')
+        df["art"] = ls["art"].values[0::4]
+        df["strom"] = ls["strom"].values[0::4] * 4
+        df["heiz"] = ls["heiz"].values[0::4]
+        df["ww"] = ls["ww"].values[0::4]
+        df["temp"] = tmy["T2m"]
 
         print(df.head())
 
         df.to_csv("__data/input.csv")
 
     df = pd.read_csv("__data/input.csv")
-    inputs = ['Temp', 'Time', 'TagArt', 'Irradiance', 'Monat', 'Verbrauch', 'Heiz', 'WW']
-    outputs = ['Verbrauch', "WW", "Heiz"]
+
+    inputs = ['temp', 'hour', 'art', 'strahlung', 'month', 'strom', 'heiz', 'ww']
+    outputs = ['strom', "ww", "heiz"]
     df = df[inputs]
     train_dataset = df.sample(frac=0.8, random_state=0)
     test_dataset = df.drop(train_dataset.index)
@@ -63,14 +60,14 @@ if __name__ == "__main__":
     train_labels = pd.DataFrame([train_features.pop(x) for x in outputs]).transpose()
     test_labels = pd.DataFrame([test_features.pop(x) for x in outputs]).transpose()
 
-    print(max(train_labels["Verbrauch"].values))
+    print(max(train_labels["strom"].values))
 
     scaler = MinMaxScaler()
 
-    scaler.fit(train_labels["Verbrauch"].values.reshape(-1, 1))
-    train_labels["Verbrauch"] = scaler.transform(train_labels["Verbrauch"].values.reshape(-1, 1))
+    scaler.fit(train_labels["strom"].values.reshape(-1, 1))
+    train_labels["strom"] = scaler.transform(train_labels["strom"].values.reshape(-1, 1))
 
-    print(max(train_labels["Verbrauch"].values))
+    print(max(train_labels["strom"].values))
 
     print(train_labels.head())
     print(train_features.head())
@@ -114,7 +111,7 @@ if __name__ == "__main__":
     )
 
     df = pd.read_csv("__data/input.csv")
-    inputs = ['Temp', 'Time', 'TagArt', 'Irradiance', 'Monat']
+    inputs = ['temp', 'hour', 'art', 'strahlung', 'month']
 
     pred = linear_model.predict(df[inputs])
     df1 = pd.DataFrame(pred, columns=["VerbrauchPred", "WWPred", "HeizPred"])
@@ -126,8 +123,6 @@ if __name__ == "__main__":
     model = Model(inputlayers=5, outputlayers=3)
     with open("model.pickle", "rb") as fp:
         model.load_state_dict(pickle.load(fp))
-
-    inputs = ['Temp', 'Time', 'TagArt', 'Irradiance', 'Monat']
 
     x = torch.tensor(df[inputs].values, dtype=torch.float)
     scaler = MinMaxScaler()
